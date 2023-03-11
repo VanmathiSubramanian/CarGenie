@@ -21,26 +21,33 @@ namespace OrderBotPage.Pages
         {
 
         }
-        private static Dictionary<string, Session>? aOrders = null;
+
+        private static Dictionary<string, Session>? sessionLookup = null;
 
         public ActionResult OnPost()
         {
-            string sFrom = Request.Form["From"];
-            string sBody = Request.Form["Body"];
-            var oMessage = new Twilio.TwiML.MessagingResponse();
-            if (aOrders == null)
+            var from = Request.Form["From"];
+            var body = Request.Form["Body"];
+            var message = new Twilio.TwiML.MessagingResponse();
+
+            if (sessionLookup == null)
             {
-                aOrders = new Dictionary<string, Session>();
+                sessionLookup = new Dictionary<string, Session>();
             }
-            if (!aOrders.ContainsKey(sFrom))
+
+            if (!sessionLookup.ContainsKey(from))
             {
-                aOrders[sFrom] = new Session(sFrom);
+                sessionLookup[from] = new Session(from);
             }
-            List<String> aMessages = aOrders[sFrom].OnMessage(sBody);
-            aMessages.ForEach(delegate(String sMessage){
-                oMessage.Message(sMessage);
-            });
-            return Content(oMessage.ToString(), "application/xml");
+
+            var messages = sessionLookup[from].OnMessage(body);
+
+            foreach (var m in messages)
+            {
+                message.Message(m);
+            }
+
+            return Content(message.ToString(), "application/xml");
         }
 
     }

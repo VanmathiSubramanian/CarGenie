@@ -6,46 +6,74 @@ namespace OrderBot
     {
         private enum State
         {
-            WELCOMING, SIZE, PROTEIN
+            WELCOME, OPTIONSELECTION
         }
 
-        private State nCur = State.WELCOMING;
-        private Order oOrder;
+        private State currentState = State.WELCOME;
+
+        private Order order;
 
         public Session(string sPhone)
         {
-            this.oOrder = new Order();
-            this.oOrder.Phone = sPhone;
+            order = new Order();
+            order.Phone = sPhone;
         }
 
-        public List<String> OnMessage(String sInMessage)
+        public List<string> OnMessage(string inputMessage)
         {
-            List<String> aMessages = new List<string>();
-            switch (this.nCur)
+            var messages = new List<string>();
+
+            switch (currentState)
             {
-                case State.WELCOMING:
-                    aMessages.Add("Welcome to Rich's Shawarama!");
-                    aMessages.Add("What size would you like?");
-                    this.nCur = State.SIZE;
+                case State.WELCOME:
+                    messages.Add("Welcome to CarGenie Bot!");
+                    messages.Add("I can help you today with the below options. Please select one.");
+                    messages.Add("Book an appointment - To select press 1");
+                    messages.Add("Book a test drive  - To select press 2");
+                    messages.Add("Change an appointment  - To select press 3");
+                    messages.Add("Information about your order  - To select press 4");
+                    currentState = State.OPTIONSELECTION;
                     break;
-                case State.SIZE:
-                    this.oOrder.Size = sInMessage;
-                    this.oOrder.Save();
-                    aMessages.Add("What protein would you like on this  " + this.oOrder.Size + " Shawarama?");
-                    this.nCur = State.PROTEIN;
+                case State.OPTIONSELECTION:
+                    messages.AddRange(GetOptionSelection(inputMessage));
                     break;
-                case State.PROTEIN:
-                    string sProtein = sInMessage;
-                    aMessages.Add("What toppings would you like on this (1. pickles 2. Tzaki) " + this.oOrder.Size + " " + sProtein + " Shawarama?");
-                    break;
-
-
             }
-            aMessages.ForEach(delegate (String sMessage)
+
+            foreach (var message in messages)
             {
-                System.Diagnostics.Debug.WriteLine(sMessage);
-            });
-            return aMessages;
+                System.Diagnostics.Debug.WriteLine(message);
+            }
+
+            return messages;
+        }
+
+        private List<string> GetOptionSelection(string selectedOption)
+        {
+            var messages = new List<string>();
+            switch (selectedOption)
+            {
+                case "1":
+                    messages.Add("Sure! Who do you want to book an appointment with?");
+                    messages.Add("Vanmathi S (Sales Agent) - To Select press 1");
+                    messages.Add("Preethi MG (Sales Agent) - To Select press 2");
+                    messages.Add("Tuney M (Sales Agent) - To Select press 3");
+                    break;
+                case "2":
+                    messages.Add("Sure! Which car do you want to test drive?");
+                    messages.Add("Toyota Corolla - To Select press 1");
+                    messages.Add("Toyota Highlander - To Select press 2");
+                    messages.Add("Toyota Prius - To Select press 3");
+                    break;
+                case "3":
+                    messages.Add("Sure! Which appoinment do you want to cancel?");
+                    messages.Add("All Appoinments - To Select press 1");
+                    messages.Add("Specific Appointment - To Select press 2");
+                    break;
+                case "4":
+                    messages.Add("Sure! Please enter your order number?");
+                    break;
+            }
+            return messages;
         }
 
     }

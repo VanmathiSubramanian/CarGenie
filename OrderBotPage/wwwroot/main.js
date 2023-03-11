@@ -2,14 +2,6 @@
  * Entry point
  */
 $(function(){
-    // gather and display messages sent from a previous session, if any
-    var pastMessages = History.get();
-    if(pastMessages !== false){
-        for(var i=0; i<pastMessages.length; i++){
-            print(pastMessages[i].message, pastMessages[i].from);
-        }
-    }
-
     // get phone number used in a previous session, if any
     var phone = getPhoneNumber();
     if(phone === false){
