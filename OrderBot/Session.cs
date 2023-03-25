@@ -16,7 +16,6 @@ namespace OrderBot
         public Session(string sPhone)
         {
             order = new Order();
-            order.Phone = sPhone;
         }
 
         public List<string> OnMessage(string inputMessage)
