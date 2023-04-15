@@ -124,6 +124,32 @@ namespace OrderBot
                 }
             }
         }
+
+        public List<SalesPerson> QueryAll()
+        {
+            using (var connection = new SqliteConnection(DB.GetConnectionString()))
+            {
+                var query = $"SELECT * FROM [SalesPerson]";
+                SqliteCommand command = new SqliteCommand(query, connection);
+                command.CommandType = System.Data.CommandType.Text;
+                connection.Open();
+
+                SqliteDataReader reader = command.ExecuteReader();
+
+                List<SalesPerson> results = new List<SalesPerson>();
+                while (reader.Read())
+                {
+                    SalesPerson salesPerson = new SalesPerson();
+                    salesPerson.SalesPersonId = reader.GetInt32(0);
+                    salesPerson.SalesPersonName = reader.GetString(1);
+                    salesPerson.SalesPersonEmail = reader.GetString(2);
+                    results.Add(salesPerson);
+                }
+
+                reader.Close();
+                return results;
+            }
+        }
     }
     public class Appointment : ISQLModel
     {
@@ -172,16 +198,87 @@ namespace OrderBot
 
         public void Save()
         {
-            // create query to update data
-            string updateQuery = "UPDATE Appointment SET UserId = @UserId WHERE AppointmentId = @AppointmentId)";
+
+        }
+
+        public int Save(string input)
+        {
+            int randomValue = new Random().Next(10, 1000);
+            // create query to INSERT data
+            string updateQuery = $"INSERT INTO Appointment VALUES({randomValue}, {input}, 1, date('now'), 'Booked', 'General')";
+            int rowId = -1;
+            // create connection object
+            using (var connection = new SqliteConnection(DB.GetConnectionString()))
+            {
+                var commandInsert = connection.CreateCommand();
+                commandInsert.CommandType = System.Data.CommandType.Text;
+                commandInsert.CommandText = updateQuery;
+                connection.Open();
+                commandInsert.ExecuteNonQuery();
+                rowId = randomValue;
+            }
+            return rowId;
+        }
+
+        public List<Appointment> QueryAll()
+        {
+            using (var connection = new SqliteConnection(DB.GetConnectionString()))
+            {
+                var query = $"SELECT * FROM [Appointment] Where AvailabilityStatus != 'Cancelled'";
+                SqliteCommand command = new SqliteCommand(query, connection);
+                command.CommandType = System.Data.CommandType.Text;
+                connection.Open();
+
+                SqliteDataReader reader = command.ExecuteReader();
+
+                List<Appointment> results = new List<Appointment>();
+                while (reader.Read())
+                {
+                    Appointment appointment = new Appointment();
+                    appointment.AppointmentId = reader.GetInt32(0);
+                    appointment.SalesPersonId = reader.GetInt32(1);
+                    appointment.UserId = reader.GetInt32(2);
+                    appointment.AppointmentDate = reader.GetDateTime(3);
+                    appointment.AvailabilityStatus = reader.GetString(4);
+                    appointment.AppointmentType = reader.GetString(5);
+                    results.Add(appointment);
+                }
+
+                reader.Close();
+                return results;
+            }
+        }
+
+        public void CancelAll()
+        {
+            // create query to insert data
+            string updateQuery = "UPDATE Appointment SET AvailabilityStatus = 'Cancelled'";
 
             // create connection object
             using (var connection = new SqliteConnection(DB.GetConnectionString()))
             {
                 var commandInsert = connection.CreateCommand();
+                commandInsert.CommandType = System.Data.CommandType.Text;
                 commandInsert.CommandText = updateQuery;
-                commandInsert.Parameters.AddWithValue("@UserId", UserId);
-                commandInsert.Parameters.AddWithValue("@AppointmentId", AppointmentId);
+                //commandInsert.Parameters.AddWithValue("@Name", Name);
+                //commandInsert.Parameters.AddWithValue("@Email", Email);
+                //commandInsert.Parameters.AddWithValue("@UserId", UserId);
+                connection.Open();
+                commandInsert.ExecuteNonQuery();
+            }
+        }
+
+        public void Cancel(string appointmentId)
+        {
+            // create query to insert data
+            string updateQuery = $"UPDATE Appointment SET AvailabilityStatus = 'Cancelled' WHERE AppointmentId = {appointmentId}";
+
+            // create connection object
+            using (var connection = new SqliteConnection(DB.GetConnectionString()))
+            {
+                var commandInsert = connection.CreateCommand();
+                commandInsert.CommandType = System.Data.CommandType.Text;
+                commandInsert.CommandText = updateQuery;
                 connection.Open();
                 commandInsert.ExecuteNonQuery();
             }
@@ -225,6 +322,10 @@ namespace OrderBot
             set { _modelYear = value; }
         }
 
+        public Car()
+        {
+
+        }
         public Car(int carId, string modelName, int modelNumber, string availabilityStatus, int modelYear)
         {
             _carId = carId;
@@ -238,13 +339,44 @@ namespace OrderBot
         {
             throw new NotImplementedException("User Cannot Save or Update a CAR. It is inventory data");
         }
+
+        public List<Car> QueryAll()
+        {
+            using (var connection = new SqliteConnection(DB.GetConnectionString()))
+            {
+                var query = $"SELECT * FROM [Car]";
+                SqliteCommand command = new SqliteCommand(query, connection);
+                command.CommandType = System.Data.CommandType.Text;
+                connection.Open();
+
+                SqliteDataReader reader = command.ExecuteReader();
+
+                List<Car> results = new List<Car>();
+                while (reader.Read())
+                {
+                    Car car = new Car();
+                    car.CarId = reader.GetInt32(0);
+                    car.ModelName = reader.GetString(1);
+                    car.ModelNumber = reader.GetInt32(2);
+                    car.AvailabilityStatus = reader.GetString(3);
+                    car.ModelYear = reader.GetInt32(4);
+                    results.Add(car);
+                }
+
+                reader.Close();
+                return results;
+            }
+        }
     }
     public class TestDrive : ISQLModel
     {
         private int _testDriveId;
         private DateTime _testDriveDate;
         private int _carId;
+        public TestDrive()
+        {
 
+        }
         public int TestDriveId
         {
             get { return _testDriveId; }
@@ -284,6 +416,25 @@ namespace OrderBot
                 connection.Open();
                 commandInsert.ExecuteNonQuery();
             }
+        }
+
+        public int Save(string carId)
+        {
+            int randomValue = new Random().Next(1000);
+            // create query to INSERT data
+            string updateQuery = $"INSERT INTO TestDrive VALUES({randomValue}, date('now'), {carId})";
+            int rowId = -1;
+            // create connection object
+            using (var connection = new SqliteConnection(DB.GetConnectionString()))
+            {
+                var commandInsert = connection.CreateCommand();
+                commandInsert.CommandType = System.Data.CommandType.Text;
+                commandInsert.CommandText = updateQuery;
+                connection.Open();
+                commandInsert.ExecuteNonQuery();
+                rowId = randomValue;
+            }
+            return rowId;
         }
     }
     public class Order : ISQLModel
@@ -333,6 +484,33 @@ namespace OrderBot
         public void Save()
         {
             throw new NotImplementedException("There is no use case for the user to insert or update order data. User can only query status for existing orders");
+        }
+
+        public Order Query(string email)
+        {
+            using (var connection = new SqliteConnection(DB.GetConnectionString()))
+            {
+                var query = $"SELECT OrderId, CarId, SalesPersonId, UserId, DeliveryDate, OrderStatus FROM [Order] WHERE UserId IN (SELECT UserId FROM User WHERE Email='{email}')";
+                SqliteCommand command = new SqliteCommand(query, connection);
+                command.CommandType = System.Data.CommandType.Text;
+                connection.Open();  
+
+                SqliteDataReader reader = command.ExecuteReader();
+
+                Order order = new Order();
+                while (reader.Read())
+                {                  
+                    order.OrderId = reader.GetInt32(0);
+                    order.CarId = reader.GetInt32(1);
+                    order.SalesPersonId = reader.GetInt32(2); 
+                    order.UserId = reader.GetInt32(3); ;
+                    order.DeliveryDate = reader.GetDateTime(4);
+                    order.OrderStatus = reader.GetString(5);
+                }
+
+                reader.Close();
+                return order;
+            }
         }
     }
 }

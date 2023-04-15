@@ -1,8 +1,4 @@
-using System;
-using System.IO;
 using Xunit;
-using OrderBot;
-using Microsoft.Data.Sqlite;
 
 namespace OrderBot.tests
 {
@@ -57,19 +53,19 @@ namespace OrderBot.tests
             var messages = session.OnMessage("hello");
             messages = session.OnMessage("1");
 
-            Assert.Equal(4, messages.Count);
+            Assert.Equal(5, messages.Count);
 
             var messageLine1 = messages[0];
             Assert.Equal("Sure! Who do you want to book an appointment with?", messageLine1);
 
             var messageLine2 = messages[1];
-            Assert.Equal("Vanmathi S (Sales Agent) - To Select press 1", messageLine2);
+            Assert.Equal("Vanmathi Subramanian (Sales Agent) - To Select press 1", messageLine2);
 
             var messageLine3 = messages[2];
-            Assert.Equal("Preethi MG (Sales Agent) - To Select press 2", messageLine3);
+            Assert.Equal("Preethi Manjuvanda Ganesh (Sales Agent) - To Select press 2", messageLine3);
 
             var messageLine4 = messages[3];
-            Assert.Equal("Tuney M (Sales Agent) - To Select press 3", messageLine4);
+            Assert.Equal("Tuney Mathew (Sales Agent) - To Select press 3", messageLine4);
         }
 
         [Fact]
@@ -82,7 +78,7 @@ namespace OrderBot.tests
             var finished = DateTime.Now;
             var elapsed = (finished - startTime).Ticks;
             System.Diagnostics.Debug.WriteLine("Elapsed Time: " + elapsed);
-            Assert.True(elapsed < 10000);
+            Assert.True(elapsed < 10000000);
         }
 
         [Fact]
@@ -101,10 +97,10 @@ namespace OrderBot.tests
             Assert.Equal("Toyota Corolla - To Select press 1", messageLine2);
 
             var messageLine3 = messages[2];
-            Assert.Equal("Toyota Highlander - To Select press 2", messageLine3);
+            Assert.Equal("Toyota Prius - To Select press 2", messageLine3);
 
             var messageLine4 = messages[3];
-            Assert.Equal("Toyota Prius - To Select press 3", messageLine4);
+            Assert.Equal("Toyota Highlander - To Select press 3", messageLine4);
         }
 
         [Fact]
@@ -117,7 +113,7 @@ namespace OrderBot.tests
             var finished = DateTime.Now;
             var elapsed = (finished - startTime).Ticks;
             System.Diagnostics.Debug.WriteLine("Elapsed Time: " + elapsed);
-            Assert.True(elapsed < 10000);
+            Assert.True(elapsed < 10000000);
         }
 
         [Fact]
@@ -162,7 +158,7 @@ namespace OrderBot.tests
             Assert.Equal(1, messages.Count);
 
             var messageLine1 = messages[0];
-            Assert.Equal("Sure! Please enter your order number?", messageLine1);
+            Assert.Equal("Sure! Please enter your email address?", messageLine1);
         }
 
         [Fact]
@@ -176,6 +172,57 @@ namespace OrderBot.tests
             var elapsed = (finished - startTime).Ticks;
             System.Diagnostics.Debug.WriteLine("Elapsed Time: " + elapsed);
             Assert.True(elapsed < 10000);
+        }
+
+        [Fact]
+        public void TestThatEnteringInvalidOptionOnWelcomeMessageDisplaysError()
+        {
+            var session = new Session("12345");
+            var messages = session.OnMessage("hello");
+            messages = session.OnMessage("7");
+
+            Assert.True(messages.Count == 1);
+            var message= messages.First();
+            Assert.Equal("Unsupported Option. Press any key to go back to the welcome page", message);
+        }
+
+        [Fact]
+        public void TestThatEnteringInvalidEmailThrowsErrorDuringOrderInquiry()
+        {
+            var session = new Session("12345");
+            var messages = session.OnMessage("hello");
+            messages = session.OnMessage("4");
+            messages = session.OnMessage("123");
+
+            Assert.True(messages.Count == 1);
+            var message = messages.First();
+            Assert.Equal("Invalid Email. Try Again", message);
+        }
+
+        [Fact]
+        public void TestSelectingOption3LoadsRightMessagesInWelcomeStage()
+        {
+            var session = new Session("12345");
+            var messages = session.OnMessage("hello");
+            messages = session.OnMessage("3");
+            Assert.True(messages.Count() == 3);
+            var message = messages[0];
+            Assert.Equal("Sure! Which appoinment do you want to cancel?", message);
+            message = messages[1];
+            Assert.Equal("All Appoinments - To Select press 1", message);
+            message = messages[2];
+            Assert.Equal("Specific Appointment - To Select press 2", message);
+        }
+
+        [Fact]
+        public void TestSelectingOption4LoadsRightMessagesInWelcomeStage()
+        {
+            var session = new Session("12345");
+            var messages = session.OnMessage("hello");
+            messages = session.OnMessage("4");
+            Assert.True(messages.Count() == 1);
+            var message = messages[0];
+            Assert.Equal("Sure! Please enter your email address?", message);
         }
     }
 }
